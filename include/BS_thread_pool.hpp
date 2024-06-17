@@ -37,6 +37,7 @@
 #include <type_traits>        // std::conditional_t, std::decay_t, std::invoke_result_t, std::is_void_v, std::remove_const_t (if priority enabled)
 #include <utility>            // std::forward, std::move
 #include <vector>             // std::vector
+#include <list>
 
 /**
  * @brief A namespace used by Barak Shoshany's projects.
@@ -1092,6 +1093,52 @@ private:
     }; // class pr_task
 #endif
 
+    template<typename T>
+    class QueueWrapper
+    {
+    public:
+        using reference = typename std::list<T>::reference;
+        using const_reference = typename std::list<T>::const_reference;
+
+        QueueWrapper()
+        {
+        }
+
+        size_t size() const
+        {
+            return container.size();
+        }
+
+        bool empty()
+        {
+            return container.empty();
+        }
+
+        void pop()
+        {
+            container.pop_front();
+        }
+
+        template<typename ...Args>
+        void emplace(Args&&... args)
+        {
+            container.emplace_back(std::forward<Args>(args)...);
+        }
+
+        reference front()
+        {
+            return container.front();
+        }
+
+        const_reference front() const
+        {
+            return container.front();
+        }
+    
+    private:
+        std::list<T> container;
+    };
+
     // ============
     // Private data
     // ============
@@ -1119,7 +1166,8 @@ private:
 #ifdef BS_THREAD_POOL_ENABLE_PRIORITY
     std::priority_queue<pr_task> tasks = {};
 #else
-    std::queue<std::function<void()>> tasks = {};
+    QueueWrapper<std::function<void()>> tasks = {};
+    // std::queue<std::function<void()>> tasks = {};
 #endif
 
     /**
